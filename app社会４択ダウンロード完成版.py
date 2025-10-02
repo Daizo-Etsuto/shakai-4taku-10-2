@@ -62,7 +62,7 @@ if not required_cols.issubset(df.columns):
 
 # ==== セッション初期化 ====
 ss = st.session_state
-if "remaining" not in ss:
+if "initialized" not in ss:   # ← フラグを立てる
     ss.remaining = df.to_dict("records")
     ss.current = None
     ss.phase = "quiz"
@@ -72,8 +72,9 @@ if "remaining" not in ss:
     ss.show_save_ui = False
     ss.user_name = ""
     ss.question = None
-    # ✅ 最初の問題を準備
-    next_question()
+    ss.initialized = True      # ← 一度だけ実行される
+    next_question()            # ← 最初の問題を準備
+
 
 
 # ==== 選択肢生成 ====
@@ -184,4 +185,5 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
+
 
