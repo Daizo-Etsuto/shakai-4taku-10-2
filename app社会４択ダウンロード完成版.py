@@ -5,6 +5,13 @@ import time
 from datetime import datetime, timedelta, timezone
 import io
 
+# ==== 利用期限チェック ====
+expiry_date = datetime(2025, 11, 30)
+today = datetime.now()
+if today.date() > expiry_date.date():
+    st.error("このアプリの利用期限は 2025-11-30 で終了しました。")
+    st.stop()
+
 # ==== 日本時間 ====
 try:
     from zoneinfo import ZoneInfo
@@ -110,19 +117,56 @@ def prepare_csv():
 
 # ==== セッション初期化 ====
 ss = st.session_state
-if "initialized" not in ss:   # ← 初回だけ実行
-    ss.remaining = df.to_dict("records")
+if "initialized" not in ss:   # 初回だけ実行
+    ss.remaining = []
     ss.current = None
-    ss.phase = "quiz"
+    ss.phase = "menu"
     ss.last_outcome = None
     ss.start_time = time.time()
     ss.history = []
     ss.show_save_ui = False
     ss.user_name = ""
     ss.question = None
+    ss.num_questions = None
     ss.initialized = True
-    next_question()   # ← 最初の問題を準備
-    st.rerun()        # ← ✅ ここを追加
+
+# ==== 問題数オプション ====
+if not ss.num_questions:  # まだ選択されていないとき
+    st.subheader("出題数を選んでください")
+
+    option = st.radio(
+        "問題数を選んでください",
+        ["10題", "20題", "好きな数"],
+        horizontal=True
+    )
+
+    if option == "10題":
+        chosen_num = 10
+    elif option == "20題":
+        chosen_num = 20
+    else:
+        chosen_num = st.number_input(
+            "出題数を入力してください",
+            min_value=1, max_value=len(df),
+            value=min(10, len(df)), step=1
+        )
+
+    if st.button("開始"):
+        if chosen_num >= len(df):
+            ss.remaining = df.to_dict("records")
+        else:
+            ss.remaining = df.sample(chosen_num).to_dict("records")
+
+        ss.num_questions = chosen_num
+        ss.current = None
+        ss.history = []
+        ss.phase = "quiz"
+        ss.last_outcome = None
+        ss.start_time = time.time()
+        next_question()
+        st.rerun()
+
+    st.stop()  # 出題数を決めるまではここで停止
 
 # ==== 全問終了 ====
 if ss.phase == "done":
@@ -196,4 +240,3 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
-
