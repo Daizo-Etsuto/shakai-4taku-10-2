@@ -117,12 +117,12 @@ if "initialized" not in ss:   # 初回だけ実行
     ss.phase = "menu"
     ss.last_outcome = None
     ss.start_time = time.time()
-    ss.history = []
+    ss.history = []             # ✅ 累積履歴
     ss.show_save_ui = False
     ss.user_name = ""
     ss.question = None
-    ss["num_questions"] = None   # 初期化
-    ss["total_elapsed"] = 0      # 累積総時間
+    ss["num_questions"] = None
+    ss["total_elapsed"] = 0     # 累積総時間
     ss.initialized = True
 
 # ==== 問題数オプション ====
@@ -154,14 +154,13 @@ if ss.get("num_questions") is None:  # まだ選択されていないとき
 
         ss["num_questions"] = chosen_num
         ss.current = None
-        ss.history = []
         ss.phase = "quiz"
         ss.last_outcome = None
         ss.start_time = time.time()
         next_question()
         st.rerun()
 
-    st.stop()  # 出題数を決めるまではここで停止
+    st.stop()
 
 # ==== 全問終了 ====
 if ss.phase == "done":
@@ -181,10 +180,9 @@ if ss.phase == "done":
     col1, col2 = st.columns(2)
     with col1:
         if st.button("もう一回"):
-            ss["num_questions"] = None   # 出題数をリセット
-            ss.phase = "menu"            # 出題数選択フェーズに戻す
+            ss["num_questions"] = None   # 出題数を再設定できるようにする
+            ss.phase = "menu"
             ss.current = None
-            ss.history = []
             ss.last_outcome = None
             st.rerun()
     with col2:
@@ -219,12 +217,12 @@ if ss.phase == "quiz" and ss.current:
             "question": question_text
         }
 
-    # ==== 残り問題数表示 ====
+    # ==== 残り問題数表示（最初から常に出す） ====
     remaining = len(ss.remaining)
     total = ss.get("num_questions", remaining)
     st.info(f"残り {remaining}問 / 全体 {total}問")
 
-    # ==== 問題文表示 ====
+    # ==== 問題文 ====
     st.subheader(f"{current['分野']}：{question_text}")
     st.markdown("<p class='choice-header'>選択肢から答えを選んでください</p>", unsafe_allow_html=True)
 
