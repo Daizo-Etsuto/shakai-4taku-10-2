@@ -89,17 +89,6 @@ def next_question():
     ss.question = None
     ss.q_start_time = time.time()
 
-# ==== クイズ全体をリセット ====
-def reset_quiz():
-    ss = st.session_state
-    ss.remaining = df.to_dict("records")
-    ss.current = None
-    ss.phase = "quiz"
-    ss.last_outcome = None
-    ss.start_time = time.time()
-    ss.question = None
-    next_question()
-
 # ==== 履歴保存 ====
 def prepare_csv():
     ss = st.session_state
@@ -128,7 +117,7 @@ if "initialized" not in ss:   # 初回だけ実行
     ss.show_save_ui = False
     ss.user_name = ""
     ss.question = None
-    ss["num_questions"] = None   # ← dict風で初期化
+    ss["num_questions"] = None   # 初期化
     ss.initialized = True
 
 # ==== 問題数オプション ====
@@ -174,16 +163,16 @@ if ss.phase == "done":
     st.success("全問終了！お疲れさまでした🎉")
     elapsed = int(time.time() - ss.start_time)
     st.info(f"所要時間: {elapsed//60}分 {elapsed%60}秒")
-    col1, col2 = st.columns(2)
-with col1:
-    if st.button("もう一回"):
-        ss.num_questions = None   # ← 出題数をリセット
-        ss.phase = "menu"         # ← 出題数選択フェーズに戻す
-        ss.current = None
-        ss.history = []
-        ss.last_outcome = None
-        st.rerun()
 
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("もう一回"):
+            ss["num_questions"] = None   # 出題数をリセット
+            ss.phase = "menu"            # 出題数選択フェーズに戻す
+            ss.current = None
+            ss.history = []
+            ss.last_outcome = None
+            st.rerun()
     with col2:
         if st.button("終了"):
             ss.show_save_ui = True
@@ -246,4 +235,3 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
-
