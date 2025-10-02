@@ -175,10 +175,15 @@ if ss.phase == "done":
     elapsed = int(time.time() - ss.start_time)
     st.info(f"所要時間: {elapsed//60}分 {elapsed%60}秒")
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("もう一回"):
-            reset_quiz()
-            st.rerun()
+with col1:
+    if st.button("もう一回"):
+        ss.num_questions = None   # ← 出題数をリセット
+        ss.phase = "menu"         # ← 出題数選択フェーズに戻す
+        ss.current = None
+        ss.history = []
+        ss.last_outcome = None
+        st.rerun()
+
     with col2:
         if st.button("終了"):
             ss.show_save_ui = True
@@ -241,3 +246,4 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
+
