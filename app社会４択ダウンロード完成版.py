@@ -98,7 +98,8 @@ def prepare_csv():
     elapsed = int(time.time() - ss.start_time)
     minutes = elapsed // 60
     seconds = elapsed % 60
-    history_df["総学習時間"] = f"{minutes}分{seconds}秒"
+    history_df["今回の学習時間"] = f"{minutes}分{seconds}秒"
+    history_df["累積総時間"] = f"{ss.total_elapsed//60}分{ss.total_elapsed%60}秒"
     history_df["出題数"] = ss.get("num_questions", "")
     csv_buffer = io.StringIO()
     history_df.to_csv(csv_buffer, index=False, encoding="utf-8-sig")
@@ -118,6 +119,7 @@ if "initialized" not in ss:   # 初回だけ実行
     ss.user_name = ""
     ss.question = None
     ss["num_questions"] = None   # 初期化
+    ss.total_elapsed = 0         # 累積総時間
     ss.initialized = True
 
 # ==== 問題数オプション ====
@@ -161,8 +163,17 @@ if ss.get("num_questions") is None:  # まだ選択されていないとき
 # ==== 全問終了 ====
 if ss.phase == "done":
     st.success("全問終了！お疲れさまでした🎉")
+
+    # 今回の学習時間
     elapsed = int(time.time() - ss.start_time)
-    st.info(f"所要時間: {elapsed//60}分 {elapsed%60}秒")
+    st.info(f"今回の学習時間: {elapsed//60}分 {elapsed%60}秒")
+
+    # 累積総時間を更新して表示
+    ss.total_elapsed += elapsed
+    total_seconds = ss.total_elapsed
+    tmin = total_seconds // 60
+    tsec = total_seconds % 60
+    st.info(f"累積総時間: {tmin}分 {tsec}秒")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -205,6 +216,12 @@ if ss.phase == "quiz" and ss.current:
             "question": question_text
         }
 
+    # ==== 残り問題数表示 ====
+    remaining = len(ss.remaining)
+    total = ss.get("num_questions", remaining)
+    st.info(f"残り {remaining}問 / 全体 {total}問")
+
+    # ==== 問題文表示 ====
     st.subheader(f"{current['分野']}：{question_text}")
     st.markdown("<p class='choice-header'>選択肢から答えを選んでください</p>", unsafe_allow_html=True)
 
