@@ -33,7 +33,7 @@ st.markdown("<h1 style='font-size:22px;'>社会４択クイズ（CSV版・スマ
 
 # ==== ファイルアップロード ====
 uploaded_file = st.file_uploader(
-    "社会科問題リスト（CSV, UTF-8推奨）をアップロードしてください  （利用期限25-9-30）",
+    "社会科問題リスト（CSV, UTF-8推奨）をアップロードしてください  （利用期限25-11-30）",
     type=["csv"],
     key="file_uploader"
 )
@@ -122,6 +122,7 @@ if "initialized" not in ss:   # ← 初回だけ実行
     ss.question = None
     ss.initialized = True
     next_question()   # ← 最初の問題を準備
+    st.rerun()        # ← ✅ ここを追加
 
 # ==== 全問終了 ====
 if ss.phase == "done":
@@ -195,3 +196,4 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
+
