@@ -1,42 +1,37 @@
-Python 3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)] on win32
-Enter "help" below or click "Help" above for more information.
->>> import random
-... import pandas as pd
-... import streamlit as st
-... import streamlit.components.v1 as components
-... import time
-... import difflib
-... import re
-... from datetime import datetime
-... 
-... st.title("4択クイズ（歴史・地理・公民）")
-... 
-... # ==== 生徒名入力 ====
-... student_name = st.text_input("生徒名を入力してください", key="student_name")
-... if not student_name:
-...     st.stop()
-... 
-... # ==== 問題セット選択 ====
-... dataset = st.selectbox("問題セットを選んでください", ["歴史", "地理", "公民"])
-... 
-... if dataset == "歴史":
-...     df = pd.read_csv("rekishi.csv", encoding="utf-8")
-... elif dataset == "地理":
-...     df = pd.read_csv("chiri.csv", encoding="utf-8")
-... else:
-...     df = pd.read_csv("koumin.csv", encoding="utf-8")
-... 
-... if not {"問題", "答え"}.issubset(df.columns):
-...     st.error("CSVには『問題』『答え』列が必要です。")
-...     st.stop()
-... 
-... # ==== カテゴリ自動判定 ====
-... def guess_category(answer: str) -> str:
-...     if pd.isna(answer):
-...         return "その他"
-...     ans = str(answer)
-... 
-...     if ans.isdigit():
+import random
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+import time
+import difflib
+import re
+from datetime import datetime
+st.title("4択クイズ（歴史・地理・公民）")
+ 
+# ==== 生徒名入力 ====
+student_name = st.text_input("生徒名を入力してください", key="student_name")
+if not student_name:
+st.stop()
+
+# ==== 問題セット選択 ====
+dataset = st.selectbox("問題セットを選んでください", ["歴史", "地理", "公民"])
+
+if dataset == "歴史":
+    df = pd.read_csv("rekishi.csv", encoding="utf-8")
+elif dataset == "地理":
+   df = pd.read_csv("chiri.csv", encoding="utf-8")
+else:
+    df = pd.read_csv("koumin.csv", encoding="utf-8")
+if not {"問題", "答え"}.issubset(df.columns):
+   st.error("CSVには『問題』『答え』列が必要です。")
+   st.stop()
+ 
+# ==== カテゴリ自動判定 ====
+def guess_category(answer: str) -> str:
+   if pd.isna(answer):
+    return "その他"
+    ans = str(answer)
+    if ans.isdigit():
         return "年号"
     if any(word in ans for word in ["戦争","乱","一揆","革命","事変","変"]):
         return "戦争・事件"
