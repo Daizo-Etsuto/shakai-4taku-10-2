@@ -62,15 +62,19 @@ if not required_cols.issubset(df.columns):
 
 # ==== セッション初期化 ====
 ss = st.session_state
-if "remaining" not in ss: ss.remaining = df.to_dict("records")
-if "current" not in ss: ss.current = None
-if "phase" not in ss: ss.phase = "quiz"
-if "last_outcome" not in ss: ss.last_outcome = None
-if "start_time" not in ss: ss.start_time = time.time()
-if "history" not in ss: ss.history = []
-if "show_save_ui" not in ss: ss.show_save_ui = False
-if "user_name" not in ss: ss.user_name = ""
-if "question" not in ss: ss.question = None
+if "remaining" not in ss:
+    ss.remaining = df.to_dict("records")
+    ss.current = None
+    ss.phase = "quiz"
+    ss.last_outcome = None
+    ss.start_time = time.time()
+    ss.history = []
+    ss.show_save_ui = False
+    ss.user_name = ""
+    ss.question = None
+    # ✅ 最初の問題を準備
+    next_question()
+
 
 # ==== 選択肢生成 ====
 def make_choices(correct_item, df):
@@ -180,3 +184,4 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
+
