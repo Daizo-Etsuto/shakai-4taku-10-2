@@ -60,23 +60,6 @@ if not required_cols.issubset(df.columns):
     st.error("CSVには『分野』『問題』『答え』列が必要です。")
     st.stop()
 
-# ==== セッション初期化 ====
-ss = st.session_state
-if "initialized" not in ss:   # ← フラグを立てる
-    ss.remaining = df.to_dict("records")
-    ss.current = None
-    ss.phase = "quiz"
-    ss.last_outcome = None
-    ss.start_time = time.time()
-    ss.history = []
-    ss.show_save_ui = False
-    ss.user_name = ""
-    ss.question = None
-    ss.initialized = True      # ← 一度だけ実行される
-    next_question()            # ← 最初の問題を準備
-
-
-
 # ==== 選択肢生成 ====
 def make_choices(correct_item, df):
     correct = correct_item["答え"]
@@ -86,7 +69,9 @@ def make_choices(correct_item, df):
     random.shuffle(choices)
     return correct, choices
 
+# ==== 次の問題を用意 ====
 def next_question():
+    ss = st.session_state
     if not ss.remaining:
         ss.current = None
         ss.phase = "done"
@@ -97,15 +82,20 @@ def next_question():
     ss.question = None
     ss.q_start_time = time.time()
 
+# ==== クイズ全体をリセット ====
 def reset_quiz():
+    ss = st.session_state
     ss.remaining = df.to_dict("records")
     ss.current = None
     ss.phase = "quiz"
     ss.last_outcome = None
     ss.start_time = time.time()
     ss.question = None
+    next_question()
 
+# ==== 履歴保存 ====
 def prepare_csv():
+    ss = st.session_state
     timestamp = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
     filename = f"{ss.user_name}_{timestamp}.csv"
     history_df = pd.DataFrame(ss.history)
@@ -117,6 +107,21 @@ def prepare_csv():
     history_df.to_csv(csv_buffer, index=False, encoding="utf-8-sig")
     csv_data = csv_buffer.getvalue().encode("utf-8-sig")
     return filename, csv_data
+
+# ==== セッション初期化 ====
+ss = st.session_state
+if "initialized" not in ss:   # ← 初回だけ実行
+    ss.remaining = df.to_dict("records")
+    ss.current = None
+    ss.phase = "quiz"
+    ss.last_outcome = None
+    ss.start_time = time.time()
+    ss.history = []
+    ss.show_save_ui = False
+    ss.user_name = ""
+    ss.question = None
+    ss.initialized = True
+    next_question()   # ← 最初の問題を準備
 
 # ==== 全問終了 ====
 if ss.phase == "done":
@@ -153,7 +158,12 @@ if ss.phase == "quiz" and ss.current:
 
     if ss.question is None:
         correct, options = make_choices(current, df)
-        ss.question = {"correct": correct, "options": options, "field": current["分野"], "question": question_text}
+        ss.question = {
+            "correct": correct,
+            "options": options,
+            "field": current["分野"],
+            "question": question_text
+        }
 
     st.subheader(f"{current['分野']}：{question_text}")
     st.markdown("<p class='choice-header'>選択肢から答えを選んでください</p>", unsafe_allow_html=True)
@@ -185,5 +195,3 @@ if ss.phase == "feedback" and ss.last_outcome:
     time.sleep(1)
     next_question()
     st.rerun()
-
-
