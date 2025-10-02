@@ -99,7 +99,10 @@ def prepare_csv():
     minutes = elapsed // 60
     seconds = elapsed % 60
     history_df["今回の学習時間"] = f"{minutes}分{seconds}秒"
-    history_df["累積総時間"] = f"{ss.total_elapsed//60}分{ss.total_elapsed%60}秒"
+
+    total_elapsed = ss.get("total_elapsed", 0)
+    history_df["累積総時間"] = f"{total_elapsed//60}分{total_elapsed%60}秒"
+
     history_df["出題数"] = ss.get("num_questions", "")
     csv_buffer = io.StringIO()
     history_df.to_csv(csv_buffer, index=False, encoding="utf-8-sig")
@@ -119,7 +122,7 @@ if "initialized" not in ss:   # 初回だけ実行
     ss.user_name = ""
     ss.question = None
     ss["num_questions"] = None   # 初期化
-    ss.total_elapsed = 0         # 累積総時間
+    ss["total_elapsed"] = 0      # 累積総時間
     ss.initialized = True
 
 # ==== 問題数オプション ====
@@ -169,8 +172,8 @@ if ss.phase == "done":
     st.info(f"今回の学習時間: {elapsed//60}分 {elapsed%60}秒")
 
     # 累積総時間を更新して表示
-    ss.total_elapsed += elapsed
-    total_seconds = ss.total_elapsed
+    ss["total_elapsed"] = ss.get("total_elapsed", 0) + elapsed
+    total_seconds = ss["total_elapsed"]
     tmin = total_seconds // 60
     tsec = total_seconds % 60
     st.info(f"累積総時間: {tmin}分 {tsec}秒")
